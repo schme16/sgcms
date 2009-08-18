@@ -1,0 +1,62 @@
+﻿@charset "utf-8";
+/* CSS Document */
+						/*Tag Classes*/
+
+body,td,th
+{
+	color: #000;
+	font-size: 10px;
+}
+
+body
+{
+	background-color: #BECE17;
+}
+
+a:link
+{
+	color: #BE5017;
+	text-decoration: none;
+}
+
+a:visited
+{
+	text-decoration: none;
+	color: #BE5017;
+}
+
+a:hover
+{
+	text-decoration: underline;
+	color: #1D6BB9;
+	font-weight: bold;
+}
+
+a:active
+{
+	text-decoration: none;
+	color: #BE5017;
+}
+						/*Dot Classes*/
+
+.tagTitle
+{
+	font-size: 10px;
+	color: #FFF;
+	font-weight: bold;
+	text-decoration: underline;
+}
+
+.links:hover
+{
+	padding: 0px;
+	text-align: center;
+}
+
+.links
+{
+	padding: 1px;
+}
+
+
+						/*Tag Based Classes*/
