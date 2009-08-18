@@ -51,10 +51,10 @@ class sgClass
 		$_POST = $this->makeSafe( $_POST, NULL );
 		
 	//Database Variables
-		$this->db['username'] = 'sgphpne_animu';
-		$this->db['password'] = 'b5qAvDyUjsmP';
-		$this->db['host'] = 'localhost';
-		$this->db['dbname'] = 'sgphpne_animu';
+		$this->db['username'] = '';
+		$this->db['password'] = '';
+		$this->db['host'] = '';
+		$this->db['dbname'] = '';
 		
 	//Now lets create a database link (also creates the `system` variables)
 		$this->db['link'] = $this->createDatabaseLink();
