@@ -36,29 +36,28 @@ $capcha = new capcha;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 class sgClass
 {
+	
 	function __construct()
 	{
 
 	//Now that the headers have be cleared, lets state some globals.
-		$this->user = '';
-		$this->alerts = '';
-		$this->system = '';
 		$this->get = $_GET;
 		$this->POST = $_POST;
+
 
 	//Make client variables safe for use. dirty clients need sanitation; Heh!
 		$_GET = $this->makeSafe( $_GET, NULL );
 		$_POST = $this->makeSafe( $_POST, NULL );
 		
 	//Database Variables
-		$this->db['username'] = '';
-		$this->db['password'] = '';
-		$this->db['host'] = '';
-		$this->db['dbname'] = '';
+		$this->db['username'] = 'sgCMS';
+		$this->db['password'] = 'sgCMS';
+		$this->db['host'] = 'localhost';
+		$this->db['dbname'] = 'sgCMS';
 		
 	//Now lets create a database link (also creates the `system` variables)
 		$this->db['link'] = $this->createDatabaseLink();
-		
+		define( TEMPLATE, $this->system['template']);
 	//If it's still a beta site, lets show verbose errors
 		if( $this->system['debug'] == 1 )
 		{
@@ -107,7 +106,7 @@ class sgClass
 	}
 	
 
-//Displays the requested page. NOTE: DEFAULTS TO THE HOMEPAGE IF PAGE NOT FOUND!
+//Displays the requested page. NOTE: DEFAULTS TO THE HOMEPAGE IF PAGE NOT FOUND! (Default = home.php)
 	function getPages( $page )
 	{
 		$file = getcwd(  ).'/system/inc/pages/'.$page.'.php';
@@ -121,11 +120,13 @@ class sgClass
 		}
 	}
 	
+//Gets the page title.	
 	function getTitle(  )
 	{
 		return $this->system['title'];
 	}
-	
+
+//Sets the error reporting value
 	function showErrors( $var )
 	{
 		if( $var )
@@ -139,6 +140,7 @@ class sgClass
 		}
 	}
 	
+//echos all of the stylesheets in the css folder
 	function getCss( $handle )
 	{		
 		$handle = opendir( $handle );
@@ -151,6 +153,7 @@ class sgClass
 		}	
 	}
 	
+//echos all of the files in the js folder	
 	function getECMAScript( $handle )
 	{		
 		$handle = opendir( $handle );
@@ -164,7 +167,7 @@ class sgClass
 	}
 	
 	
-//This gets info from the `content`	
+//This gets info from the `content`	table
 	function getDatabaseContent( $handle, $numRows, $whereTemp )
 	{
 		
@@ -183,7 +186,7 @@ class sgClass
 			$multArray[count($multArray)-1] = $row;
 		}
 		
-	//When done; Return;
+	//When done; Return
 		return $multArray;
 	}
 	
@@ -194,6 +197,7 @@ class sgClass
 		
 	}
 
+//creates a random colour (accepts an array of colours that are exceptions)
 	function getRandColour($exceptions)
 	{
 		$str = '';
@@ -231,15 +235,14 @@ class sgClass
 		return($str);
 	}
 	
-	function getRssFeeds( $where )
+	function makeRSS(  )
 	{
 		$dbName = $this->db['dbname'];
 		$SQL = mysql_query( "select * from `$dbName`.`rss` $where " );
-		
 		return $SQL;
 	}
 
-						/*This dynamically makes the sql code for any tables*/
+//getFields finds and returns all the field names in a given table, as an array. 
 	function getFields($tablename, $database, $mysql_connection)
 	{
 		$fields = mysql_list_fields($database, $tablename, $mysql_connection);
@@ -254,6 +257,7 @@ class sgClass
 		return $table_field;
 	}	
 
+//alterEntries is a method for auto creating a MySQL Complient string for query, using just a few input parameters.
 	function alterEntries($user_details, $db, $type, $table, $where)
 	{
 		$tf = $this->getFields($table, $db['dbname'], $db['link']);
@@ -362,7 +366,7 @@ class sgClass
 		return TRUE;
 	}
 
-//Determins if a user is an admin
+//Determines if a user is an admin
 	function isAdmin( $user )
 	{
 		//is the users rank correct for admin?
@@ -376,7 +380,29 @@ class sgClass
 		return FALSE;
 	}
 
+//Gets the specified template and parses the websites *NOTE: DEFAULTS TO THE TEMPLATE LABLED `default`` IN THE TEMPLATE DIR.
+	function parseTemplate( $template )
+	{
+		if( $this->isValidTemplate( $template ) )
+		{
+			include(  getcwd().'/system/templates/'.$temp.'/index.html' );
+		}
+		else
+		{
+			include(  getcwd().'/system/templates/default/index.html' );
+		}
+	}
 
+//Check if the specified template exists
+	function isValidTemplate( $temp )
+	{
+		if( $temp != NULL and is_dir( getcwd().'/system/templates/'.$temp ) )
+		{
+			return TRUE;
+		}
+		
+		return FALSE;
+	}
 }
 
 
@@ -405,6 +431,7 @@ class sgClass
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 class capcha
 {
+//Creates the image	
 	function image($str)
 	{
 		header('Content-type: image/png');  
