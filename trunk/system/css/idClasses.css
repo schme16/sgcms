@@ -1,0 +1,38 @@
+@charset "utf-8";
+/* CSS Document */
+
+						/*ID Classes*/
+						
+#ID_1
+{
+}		
+
+#ID_2
+{
+	width: 100px;
+	float:right;
+}	
+
+#ID_3
+{
+	width:100px;
+	float:left;
+}	
+
+#ID_4
+{
+	width: auto;
+	float:none;
+}
+
+#ID_5
+{
+}
+
+#ID_6
+{
+}	
+
+#ID_7
+{
+}
