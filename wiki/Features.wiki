@@ -1,8 +1,8 @@
 #labels Featured,Phase-Deploy
 = Feature List =
-  * Built-in [http://code.google.com/p/sgcms/wiki/TMS Template Management System]
+  * Built-in [http://code.google.com/p/sgcms/wiki/TemplateManagementSystem Template Management System]
   * Full [http://en.wikipedia.org/wiki/XML XML] Complicity
-  * [http://code.google.com/p/sgcms/wiki/MS Module System]
+  * [http://code.google.com/p/sgcms/wiki/ModuleSystem Module System]
   * Ease of Use
   * [http://en.wikipedia.org/wiki/RSS_2.0#RSS_2.0 RSS 2.0] Feed Generator
 
