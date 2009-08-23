@@ -3,7 +3,7 @@
 //				######   ######       ######   #######  ##    ## ######## ####  ######   
 //			   ##    ## ##    ##     ##    ## ##     ## ###   ## ##        ##  ##    ##  
 //			   ##       ##           ##       ##     ## ####  ## ##        ##  ##        
-//				######  ##   ####    ##       ##     ## ## ## ## ######    ##  ##   #### 
+//				######  ##   ####    ##       ##     ## ## ## ## ######    ##  ##   #### index.cfm
 //					 ## ##    ##     ##       ##     ## ##  #### ##        ##  ##    ##  
 //			   ##    ## ##    ##     ##    ## ##     ## ##   ### ##        ##  ##    ##  
 //				######   ######       ######   #######  ##    ## ##       ####  ######   
@@ -39,25 +39,7 @@ class sgClass
 	
 	function __construct()
 	{
-
-	//Now that the headers have be cleared, lets state some globals.
-		$this->get = $_GET;
-		$this->POST = $_POST;
-
-
-	//Make client variables safe for use. dirty clients need sanitation; Heh!
-		$_GET = $this->makeSafe( $_GET, NULL );
-		$_POST = $this->makeSafe( $_POST, NULL );
 		
-	//Database Variables
-		$this->db['username'] = 'sgCMS';
-		$this->db['password'] = 'sgCMS';
-		$this->db['host'] = 'localhost';
-		$this->db['dbname'] = 'sgCMS';
-		
-	//Now lets create a database link (also creates the `system` variables)
-		$this->db['link'] = $this->createDatabaseLink();
-		define( TEMPLATE, $this->system['template']);
 	//If it's still a beta site, lets show verbose errors
 		if( $this->system['debug'] == 1 )
 		{
@@ -68,6 +50,35 @@ class sgClass
 			$this->system['debug'] = false;
 		}
 		$this->showErrors( $system['debug'] );	
+		
+		
+	//Now that the headers have be cleared, lets state some globals.
+		$this->get = $_GET;
+		$this->POST = $_POST;
+
+
+	//Make client variables safe for use. dirty clients need sanitation; Heh!
+		$_GET = $this->makeSafe( $_GET, NULL );
+		$_POST = $this->makeSafe( $_POST, NULL );
+
+
+	//Database Variables
+		$this->db['username'] = 'sgCMS';
+		$this->db['password'] = 'sgCMS';
+		$this->db['host'] = 'localhost';
+		$this->db['dbname'] = 'sgCMS';
+
+
+	//Now lets create a database link (also creates the `system` variables)
+		$this->db['link'] = $this->createDatabaseLink();
+
+	//Global Definitions.
+		define( TEMPLATE, $this->system['template']);		
+		define( tDir, 'system/templates/');
+		define( ECMADir, 'system/inc/scripts/js');
+		define( CSSDir, 'system/css');
+		define( PHPDir, 'system/inc/scripts/php');
+		
 	}
 
 
@@ -129,41 +140,70 @@ class sgClass
 //Sets the error reporting value
 	function showErrors( $var )
 	{
-		if( $var )
+		if( !$var )
 		{
 			error_reporting( 6135 );
-
+			include('scripts/php/FirePHPCore/FirePHP.class.php');
+			include('scripts/php/FirePHPCore/fb.php');	
 		}
 		else
 		{
-			error_reporting( 6135 );
+			error_reporting( 0 );
 		}
 	}
-	
+
+
 //echos all of the stylesheets in the css folder
-	function getCss( $handle )
+	function getCss( $doc )
 	{		
-		$handle = opendir( $handle );
+		$handle = opendir( CSSDir );
 		while( ( $file = readdir( $handle ) ) != false)
 		{
+			 //rel=\"stylesheet\" type=\"text/css\" 
 			if( $file != '.' and $file != '..' and $file != '_notes' and substr($file,strlen($file)-4, strlen($file)) == '.css' )
 			{
-				echo"<link href=\"system/css/".$file."\" rel=\"stylesheet\" type=\"text/css\" /> \n\r";
+				$x = count($css);
+				$css[$x] = $doc->createElement( 'link', '' );
+				$link = $doc->createAttribute('href');
+				$linkText = $doc->createTextNode( CSSDir.'/'.$file );
+				
+				$rel = $doc->createAttribute('rel');
+				$relText = $doc->createTextNode( 'stylesheet' );
+				
+				$type = $doc->createAttribute('type');
+				$typeText = $doc->createTextNode( 'text/css' );
+				
+				$link->appendChild( $linkText );
+				$rel->appendChild( $relText );
+				$type->appendChild( $typeText );
+				$css[$x]->appendChild( $link );
+				$css[$x]->appendChild( $rel );
+				$css[$x]->appendChild( $type );
 			}
-		}	
+		}
+		
+		return $css;	
 	}
-	
-//echos all of the files in the js folder	
-	function getECMAScript( $handle )
+
+
+//returns array of all of the files in the js folder	
+	function getECMAScript( $doc )
 	{		
-		$handle = opendir( $handle );
+		$handle = opendir( ECMADir );
 		while( ( $file = readdir( $handle ) ) != false)
 		{
 			if( $file != '.' and $file != '..' and $file != '_notes' and substr($file,strlen($file)-3, strlen($file)) == '.js' )
 			{
-				echo"<script type=\"text/javascript\" src=\"system/inc/scripts/js/".$file."\"></script> \n\r";
+				$x = count($ecma);
+				$ecma[$x] = $doc->createElement( 'script', '' );
+				$fileLoc = $doc->createAttribute('src');
+				$srcText = $doc->createTextNode( ECMADir.'/'.$file );
+				$fileLoc->appendChild( $srcText );
+				$ecma[$x]->appendChild( $fileLoc );
 			}
-		}	
+		}
+		
+		return $ecma;
 	}
 	
 	
@@ -196,6 +236,7 @@ class sgClass
 	{
 		
 	}
+
 
 //creates a random colour (accepts an array of colours that are exceptions)
 	function getRandColour($exceptions)
@@ -234,13 +275,16 @@ class sgClass
 		
 		return($str);
 	}
-	
+
+
+//Creates an RSS Feed based on the array sent to it.
 	function makeRSS(  )
 	{
 		$dbName = $this->db['dbname'];
 		$SQL = mysql_query( "select * from `$dbName`.`rss` $where " );
 		return $SQL;
 	}
+
 
 //getFields finds and returns all the field names in a given table, as an array. 
 	function getFields($tablename, $database, $mysql_connection)
@@ -256,6 +300,7 @@ class sgClass
 	
 		return $table_field;
 	}	
+
 
 //alterEntries is a method for auto creating a MySQL Complient string for query, using just a few input parameters.
 	function alterEntries($user_details, $db, $type, $table, $where)
@@ -360,6 +405,7 @@ class sgClass
 		return false;
 	}
 
+
 //Checks to see if the submitter is legit.
 	function canSubmit(  )
 	{
@@ -381,28 +427,102 @@ class sgClass
 	}
 
 //Gets the specified template and parses the websites *NOTE: DEFAULTS TO THE TEMPLATE LABLED `default`` IN THE TEMPLATE DIR.
-	function parseTemplate( $template )
+	function parseTemplate( $t )
 	{
-		if( $this->isValidTemplate( $template ) )
+		if( $this->isValidTemplate( tDir.$t ) and $this->getIndex( tDir.$t ) )
 		{
-			include(  getcwd().'/system/templates/'.$temp.'/index.html' );
+			$doc = new DOMDocument(  );
+			$doc->loadHTMLFile( $this->getIndex( tDir.$t ) );
+			
+			//Gets the `Head` Node
+			$head = $doc->getElementsByTagName('head');
+			foreach($head as $key=>$node)
+			{
+				$head = $node;
+				break;
+			}
+			
+			//Gets all ECMA script files included.
+			foreach( $this->getECMAScript( $doc ) as $key=>$data )
+			{
+				$head->appendChild( $data );
+			}
+			
+			//gets all stylesheet files included
+			foreach( $this->getCss( $doc ) as $key=>$data )
+			{
+				fb( $data );
+				$head->appendChild( $data );
+			}
+				
+//			<script type=\"text/javascript\" src=\"system/inc/scripts/js/"
+			
+			$page = $doc->saveXML(  );
+			
+			return $page;
 		}
 		else
 		{
-			include(  getcwd().'/system/templates/default/index.html' );
+			//include(  getcwd().'/system/templates/sgCMSDefault/index.html' );
 		}
 	}
+
 
 //Check if the specified template exists
 	function isValidTemplate( $temp )
 	{
-		if( $temp != NULL and is_dir( getcwd().'/system/templates/'.$temp ) )
+		if( $temp != NULL and is_dir( $temp ) )
 		{
 			return TRUE;
 		}
 		
 		return FALSE;
 	}
+
+
+//gets the index file for a given directory
+	function getIndex( $dir )
+	{
+		$indexList = 
+			array(
+					'default.htm',
+					'index.php',
+					'index.html',
+					'index.htm',
+					'index.cfm',
+				);
+		foreach( $indexList as $i )
+		{
+			$temp = $dir.'/'.$i;
+			if( is_file( $temp ) )
+			{
+				return $temp;
+			}
+		}
+		return FALSE;
+	}
+
+
+//gets the `innerHTML` of a given node
+	function DOMinnerHTML($element)
+	{
+		$innerHTML = "";
+		$children = $element->childNodes;
+		foreach ($children as $child)
+		{
+			$tmp_dom = new DOMDocument();
+			$tmp_dom->appendChild($tmp_dom->importNode($child, true));
+			$innerHTML.=trim($tmp_dom->saveHTML());
+		}
+		return $innerHTML;
+	}	
+
+
+
+
+
+
+
 }
 
 
