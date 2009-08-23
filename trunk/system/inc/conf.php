@@ -73,10 +73,15 @@ class sgClass
 		$this->db['link'] = $this->createDatabaseLink();
 
 	//Global Definitions.
-		define( TEMPLATE, $this->system['template']);		
+	
+		define( TEMPLATE, $this->system['template']);
 		define( tDir, 'system/templates/');
-		define( ECMADir, 'system/inc/scripts/js');
-		define( CSSDir, 'system/css');
+		define( ECMADir, 'system/inc/scripts/ecma');
+		define( CSSDir, 'system/css');		
+		$this->tConfig = $this->getTemplateConfig( TEMPLATE ); //Template Config file;
+		define( templateECMADir,  tDir.TEMPLATE.'/'.$this->tConfig['ECMAFolder'] );
+		define( templateCSSDir, tDir.TEMPLATE.'/'.$this->tConfig['cssFolder']);
+		define( templateIMGDir, tDir.TEMPLATE.'/'.$this->tConfig['imgFolder']);
 		define( PHPDir, 'system/inc/scripts/php');
 		
 	}
@@ -153,13 +158,14 @@ class sgClass
 	}
 
 
-//echos all of the stylesheets in the css folder
+//Appends all template stylesheets into the DOM
 	function getCss( $doc )
 	{		
+	
+	//First we'll append the global styles (this way they're overidable by the template sheets)
 		$handle = opendir( CSSDir );
 		while( ( $file = readdir( $handle ) ) != false)
 		{
-			 //rel=\"stylesheet\" type=\"text/css\" 
 			if( $file != '.' and $file != '..' and $file != '_notes' and substr($file,strlen($file)-4, strlen($file)) == '.css' )
 			{
 				$x = count($css);
@@ -182,13 +188,54 @@ class sgClass
 			}
 		}
 		
+	//Now we proccess the template directorys' styles.	
+		if( is_dir( templateCSSDir ) )
+		{
+			$handle = opendir( templateCSSDir );
+			while( ( $file = readdir( $handle ) ) != false)
+			{
+				if( $file != '.' and $file != '..' and $file != '_notes' and substr($file,strlen($file)-4, strlen($file)) == '.css' )
+				{
+					$x = count($css);
+					//Creates the <link> DOM node
+					$css[$x] = $doc->createElement( 'link', '' );
+					
+					//This created the href="" attribute
+					$link = $doc->createAttribute('href');
+					$linkText = $doc->createTextNode( templateCSSDir.'/'.$file );
+					
+					//This created the rel="stylesheet" attribute					
+					$rel = $doc->createAttribute('rel');
+					$relText = $doc->createTextNode( 'stylesheet' );
+					
+					//This created the type="text/css" attribute					
+					$type = $doc->createAttribute('type');
+					$typeText = $doc->createTextNode( 'text/css' );
+					
+					
+					//Now we append the text to the attributes
+					$link->appendChild( $linkText );
+					$rel->appendChild( $relText );
+					$type->appendChild( $typeText );
+					
+					//Now we append them all to the <link> node
+					$css[$x]->appendChild( $link );
+					$css[$x]->appendChild( $rel );
+					$css[$x]->appendChild( $type );
+				}
+			}	
+		}
+		
+		//Now lets send it back to the DOM Parser func
 		return $css;	
 	}
 
 
-//returns array of all of the files in the js folder	
+//Appends all global and template ECMA into the DOM
 	function getECMAScript( $doc )
 	{		
+	
+	//As with the stylesheets, we'll start by appending the global ECMA to the DOM, that way we can override global functions later on if need be
 		$handle = opendir( ECMADir );
 		while( ( $file = readdir( $handle ) ) != false)
 		{
@@ -200,6 +247,24 @@ class sgClass
 				$srcText = $doc->createTextNode( ECMADir.'/'.$file );
 				$fileLoc->appendChild( $srcText );
 				$ecma[$x]->appendChild( $fileLoc );
+			}
+		}
+		
+	//Now we append the template's 	ECMA (if the folder exists)
+		if( is_dir( templateECMADir ) )
+		{
+			$handle = opendir( templateECMADir );
+			while( ( $file = readdir( $handle ) ) != false)
+			{
+				if( $file != '.' and $file != '..' and $file != '_notes' and substr($file,strlen($file)-3, strlen($file)) == '.js' )
+				{
+					$x = count($ecma);
+					$ecma[$x] = $doc->createElement( 'script', '' );
+					$fileLoc = $doc->createAttribute('src');
+					$srcText = $doc->createTextNode( templateECMADir.'/'.$file );
+					$fileLoc->appendChild( $srcText );
+					$ecma[$x]->appendChild( $fileLoc );
+				}
 			}
 		}
 		
@@ -429,10 +494,13 @@ class sgClass
 //Gets the specified template and parses the websites *NOTE: DEFAULTS TO THE TEMPLATE LABLED `default`` IN THE TEMPLATE DIR.
 	function parseTemplate( $t )
 	{
-		if( $this->isValidTemplate( tDir.$t ) and $this->getIndex( tDir.$t ) )
+		if( $this->isValidTemplate( tDir.$t ) )
 		{
 			$doc = new DOMDocument(  );
 			$doc->loadHTMLFile( $this->getIndex( tDir.$t ) );
+			
+			
+			fb( templateCSSDir );
 			
 			//Gets the `Head` Node
 			$head = $doc->getElementsByTagName('head');
@@ -451,14 +519,10 @@ class sgClass
 			//gets all stylesheet files included
 			foreach( $this->getCss( $doc ) as $key=>$data )
 			{
-				fb( $data );
 				$head->appendChild( $data );
 			}
-				
-//			<script type=\"text/javascript\" src=\"system/inc/scripts/js/"
-			
+						
 			$page = $doc->saveXML(  );
-			
 			return $page;
 		}
 		else
@@ -471,7 +535,7 @@ class sgClass
 //Check if the specified template exists
 	function isValidTemplate( $temp )
 	{
-		if( $temp != NULL and is_dir( $temp ) )
+		if( $temp != NULL and is_dir( $temp ) and $this->getIndex( $temp ) and file_exists( $temp.'/config.xml' ) )
 		{
 			return TRUE;
 		}
@@ -480,6 +544,22 @@ class sgClass
 	}
 
 
+//Gets the config file for a template
+	function getTemplateConfig( $t )
+	{
+			$config = new DOMDocument(  );
+			$config->loadXML( file_get_contents( tDir.$t.'/config.xml' ) );
+			$temp['title'] = $config->getElementsByTagName( 'title' )->item(0)->nodeValue;
+			$temp['author'] = $config->getElementsByTagName( 'author' )->item(0)->nodeValue;
+			$temp['pubDate'] = $config->getElementsByTagName( 'pubDate' )->item(0)->nodeValue;
+			$temp['imgFolder'] = $config->getElementsByTagName( 'imgFolder' )->item(0)->nodeValue;
+			$temp['ECMAFolder'] = $config->getElementsByTagName( 'ECMAFolder' )->item(0)->nodeValue;
+			$temp['cssFolder'] = $config->getElementsByTagName( 'cssFolder' )->item(0)->nodeValue;
+		
+		return $temp;
+	}
+	
+	
 //gets the index file for a given directory
 	function getIndex( $dir )
 	{
@@ -503,7 +583,7 @@ class sgClass
 	}
 
 
-//gets the `innerHTML` of a given node
+//Gets the `innerHTML` of a given node
 	function DOMinnerHTML($element)
 	{
 		$innerHTML = "";

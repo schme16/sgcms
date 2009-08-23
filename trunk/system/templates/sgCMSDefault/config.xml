@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templateInfo>
+	<title>
+		sgCMS Default Template
+	</title>
+	<author>Shane Gadsby</author>
+	<pubDate>Sun || 23-08-2009</pubDate>
+	
+	<configuration>
+		<imgFolder>img</imgFolder>
+		
+		<ECMAFolder>ecma</ECMAFolder>
+		
+		<cssFolder>css</cssFolder>
+		
+	</configuration>
+</templateInfo>
