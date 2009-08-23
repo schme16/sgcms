@@ -9,6 +9,6 @@
 	//First let's get the config file.
 		require('system/inc/conf.php');
 	
-	$global->parseTemplate( TEMPLATE );
+	echo $global->parseTemplate( TEMPLATE );
 	
 ?>
