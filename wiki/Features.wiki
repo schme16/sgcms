@@ -1,4 +1,9 @@
 #labels Featured,Phase-Deploy
-#This is a complete list of features with current status for each.
-
 = Feature List =
+  * Built-in [http://code.google.com/p/sgcms/wiki/TMS Template Management System]
+  * Full [http://en.wikipedia.org/wiki/XML XML] Complicity
+  * [http://code.google.com/p/sgcms/wiki/MS Module System]
+  * Ease of Use
+  * [http://en.wikipedia.org/wiki/RSS_2.0#RSS_2.0 RSS 2.0] Feed Generator
+
+Plus many more to come as the project matures.
